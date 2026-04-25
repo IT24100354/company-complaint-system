@@ -114,7 +114,7 @@
                 </div>
 
                 <div id="customerFields" class="row g-4 m-0 d-none">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label" for="custCat">Category <span class="text-danger">*</span></label>
                         <select id="custCat" class="form-select" onchange="toggleOtherField('custCat', 'otherCatItemCust')">
                             <option value="">Select Category</option>
@@ -122,14 +122,7 @@
                         </select>
                         <div id="otherCatItemCust" class="other-field-container d-none"><input type="text" id="otherCatCust" class="form-control" placeholder="Specify Category"></div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label" for="custDept">Department <span class="text-danger">*</span></label>
-                        <select id="custDept" class="form-select">
-                            <option value="">Select Department</option>
-                            <option value="HR">HR</option><option value="Finance">Finance</option><option value="IT">IT</option><option value="Sales">Sales</option><option value="Support">Support</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label" for="orderRef">Order Ref # (Optional)</label>
                         <input type="text" id="orderRef" class="form-control">
                     </div>
@@ -295,8 +288,6 @@
             } else {
                 document.getElementById('companySelect').value = data.companyId || '';
                 setSelectValue('custCat', data.category, 'otherCatCust', data.otherCategory, 'otherCatItemCust');
-                console.log("DEBUG: Setting custDept to:", data.department);
-                document.getElementById('custDept').value = data.department || '';
                 document.getElementById('orderRef').value = data.orderReference || '';
                 
                 // Load Desired Resolution
@@ -440,11 +431,12 @@
         di.setAttribute('min', threeMonthsAgo.toISOString().split('T')[0]);
     }
 
+    let allCompanies = [];
     async function fetchCompanies() {
         const res = await fetch('/api/companies');
-        const list = await res.json();
+        allCompanies = await res.json();
         const select = document.getElementById('companySelect');
-        list.forEach(c => {
+        allCompanies.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id; opt.textContent = c.name; select.appendChild(opt);
         });
@@ -515,6 +507,25 @@
             return;
         }
 
+        const termsContainer = document.getElementById('termsModal').querySelector('.bg-light.p-3');
+        let baseTerms = `
+            1. The information provided is true and accurate.<br>
+            2. You understand that false reports may lead to disciplinary action.<br>
+            3. Your data will be processed according to our privacy policy.<br>
+            4. The resolution time varies based on priority and case complexity.<br>
+            5. You will cooperate with the investigation team if required.
+        `;
+
+        if (!isEmployee) {
+            const companyId = document.getElementById('companySelect').value;
+            const company = allCompanies.find(c => c.id == companyId);
+            if (company && company.policies) {
+                baseTerms += `<hr><strong>Company Policies:</strong><br><span style="white-space: pre-wrap;">${company.policies}</span>`;
+            }
+        }
+        
+        termsContainer.innerHTML = baseTerms;
+
         const modal = new bootstrap.Modal(document.getElementById('termsModal'));
         modal.show();
     }
@@ -557,7 +568,6 @@
             }
             formData.append('category', document.getElementById('custCat').value);
             formData.append('otherCategory', document.getElementById('otherCatCust').value);
-            formData.append('department', document.getElementById('custDept').value);
             formData.append('orderReference', document.getElementById('orderRef').value);
             
             const solRadio = document.querySelector('input[name="solution"]:checked');

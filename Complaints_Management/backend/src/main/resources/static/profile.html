@@ -139,6 +139,11 @@
                     <input type="password" id="confirm-password" class="form-control" placeholder="Confirm new password">
                 </div>
 
+                <div class="form-group" id="policies-group" style="display: none;">
+                    <label class="form-label">Company Policies / Terms & Conditions</label>
+                    <textarea id="policies" class="form-control" rows="4" placeholder="Enter return policies, non-exchange conditions, etc."></textarea>
+                </div>
+
                 <button class="btn-update" onclick="submitProfile()">Update Account Settings</button>
             </div>
         </div>
@@ -161,7 +166,11 @@
             if (role === 'CUSTOMER') dashLink.href = 'customer-dashboard.html';
             else if (role === 'EMPLOYEE') dashLink.href = 'employee-dashboard.html';
             else if (role === 'ADMIN') dashLink.href = 'admin-dashboard.html';
-            else if (role === 'COMPANY_ADMIN') dashLink.href = 'company-admin-dashboard.html';
+            else if (role === 'COMPANY_ADMIN') {
+                dashLink.href = 'company-admin-dashboard.html';
+                document.getElementById('policies-group').style.display = 'block';
+                document.getElementById('policies').value = session.policies || '';
+            }
             else if (role === 'DEPT_USER') dashLink.href = 'department-dashboard.html';
             
             // Populate data
@@ -228,21 +237,27 @@
                     }
                 }
 
+                const bodyObj = {
+                    id: session.id,
+                    fullName: fullName,
+                    email: email,
+                    password: newPassword || null
+                };
+                if (session.role === 'COMPANY_ADMIN') {
+                    bodyObj.policies = document.getElementById('policies').value;
+                }
+
                 const resp = await fetch('/api/auth/profile/update', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        id: session.id,
-                        fullName: fullName,
-                        email: email,
-                        password: newPassword || null
-                    })
+                    body: JSON.stringify(bodyObj)
                 });
 
                 if (resp.ok) {
                     const data = await resp.json();
                     session.fullName = data.fullName;
                     session.email = data.email;
+                    if (data.policies) session.policies = data.policies;
                     if (data.profileImageUrl) session.profileImageUrl = data.profileImageUrl;
                     sessionStorage.setItem('cms_session', JSON.stringify(session));
                     

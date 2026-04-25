@@ -51,6 +51,9 @@ public class User {
     private String nic;
     private String employeeId;
 
+    @Column(columnDefinition = "TEXT")
+    private String policies;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getUsername() { return username; }
@@ -87,4 +90,7 @@ public class User {
     public void setNic(String nic) { this.nic = nic; }
     public String getEmployeeId() { return employeeId; }
     public void setEmployeeId(String employeeId) { this.employeeId = employeeId; }
+
+    public String getPolicies() { return policies; }
+    public void setPolicies(String policies) { this.policies = policies; }
 }

@@ -142,6 +142,11 @@
                         <input type="text" id="registrationNumber" class="cms-input" placeholder="e.g. PV-123456" />
                     </div>
 
+                    <div class="cms-form-group mb-3" id="policies-wrap" style="display:none">
+                        <label class="cms-label" for="policies">Return Policies, Terms & Conditions</label>
+                        <textarea id="policies" class="cms-input" rows="4" placeholder="Enter company policies, non-exchange conditions..."></textarea>
+                    </div>
+
                     <div class="cms-form-group mb-3">
                         <label class="cms-label" for="nic" id="nic-label">National ID Card (NIC)</label>
                         <input type="text" id="nic" class="cms-input" placeholder="e.g. 123456789V" maxlength="12" />
@@ -248,12 +253,14 @@
             const vf = document.getElementById('verification-fields');
             const companyContainer = document.getElementById('company-input-container');
             const regNumWrap = document.getElementById('reg-num-wrap');
+            const policiesWrap = document.getElementById('policies-wrap');
             const empIdWrap = document.getElementById('emp-id-wrap');
             const nicLabel = document.getElementById('nic-label');
 
             if (selectedRole === 'employee') {
                 vf.style.display = 'block';
                 regNumWrap.style.display = 'none';
+                policiesWrap.style.display = 'none';
                 empIdWrap.style.display = 'block';
                 nicLabel.textContent = "National ID Card (NIC)";
                 
@@ -274,6 +281,7 @@
             } else if (selectedRole === 'company_admin') {
                 vf.style.display = 'block';
                 regNumWrap.style.display = 'block';
+                policiesWrap.style.display = 'block';
                 empIdWrap.style.display = 'none';
                 nicLabel.textContent = "Owner/Manager NIC";
                 
@@ -288,6 +296,7 @@
             } else if (selectedRole === 'admin') {
                 vf.style.display = 'block';
                 regNumWrap.style.display = 'none';
+                policiesWrap.style.display = 'none';
                 empIdWrap.style.display = 'none';
                 companyContainer.innerHTML = ''; // No company for general admin
                 nicLabel.textContent = "National ID Card (NIC)";
@@ -373,7 +382,8 @@
                 nic: getVal('nic'),
                 employeeId: getVal('employeeId'),
                 companyName: getVal('company'),
-                registrationNumber: getVal('registrationNumber')
+                registrationNumber: getVal('registrationNumber'),
+                policies: getVal('policies')
             };
 
             fetch('/api/auth/register', {
