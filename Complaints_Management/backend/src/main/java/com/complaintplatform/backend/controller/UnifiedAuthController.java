@@ -46,6 +46,7 @@ public class UnifiedAuthController {
         String employeeId = request.get("employeeId");
         String companyName = request.get("companyName");
         String registrationNumber = request.get("registrationNumber");
+        String companyPolicies = request.get("companyPolicies");
         
         if (userRepository.findByUsername(username).isPresent()) {
             return ResponseEntity.status(400).body(Map.of("message", "Username already exists."));
@@ -77,6 +78,10 @@ public class UnifiedAuthController {
         user.setEmployeeId(employeeId);
         user.setCompanyName(companyName);
         user.setRegistrationNumber(registrationNumber);
+        
+        if (role == User.Role.COMPANY_ADMIN && companyPolicies != null) {
+            user.setCompanyPolicies(companyPolicies);
+        }
         
         // Find company ID if possible (only for roles that link to existing companies, like EMPLOYEE)
         if (companyName != null && role == User.Role.EMPLOYEE) {
@@ -177,6 +182,9 @@ public class UnifiedAuthController {
         resp.put("nic", user.getNic());
         resp.put("registrationNumber", user.getRegistrationNumber());
         resp.put("email", user.getEmail());
+        if (user.getCompanyPolicies() != null) {
+            resp.put("companyPolicies", user.getCompanyPolicies());
+        }
         return resp;
     }
 
@@ -273,6 +281,7 @@ public class UnifiedAuthController {
         String newName = (String) request.get("fullName");
         String newEmail = (String) request.get("email");
         String newPassword = (String) request.get("password");
+        String newPolicies = (String) request.get("companyPolicies"); // optional for company admins
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
@@ -280,12 +289,25 @@ public class UnifiedAuthController {
         if (newName != null && !newName.isBlank()) user.setFullName(newName);
         if (newEmail != null && !newEmail.isBlank()) user.setEmail(newEmail);
         if (newPassword != null && !newPassword.isBlank()) user.setPassword(passwordEncoder.encode(newPassword));
+        
+        if (user.getRole() == User.Role.COMPANY_ADMIN && newPolicies != null) {
+            user.setCompanyPolicies(newPolicies);
+            if (user.getCompanyId() != null) {
+                companyRepository.findById(user.getCompanyId()).ifPresent(c -> {
+                    c.setPolicies(newPolicies);
+                    companyRepository.save(c);
+                });
+            }
+        }
 
         User saved = userRepository.save(user);
         Map<String, Object> respData = new HashMap<>();
         respData.put("fullName", saved.getFullName());
         respData.put("email", saved.getEmail());
         respData.put("profileImageUrl", saved.getProfileImageUrl());
+        if (saved.getCompanyPolicies() != null) {
+            respData.put("companyPolicies", saved.getCompanyPolicies());
+        }
         respData.put("success", true);
         return ResponseEntity.ok(respData);
     }

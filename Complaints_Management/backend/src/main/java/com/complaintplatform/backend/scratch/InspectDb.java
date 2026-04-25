@@ -1,4 +1,4 @@
-
+package com.complaintplatform.backend.scratch;
 import com.complaintplatform.backend.model.Complaint;
 import com.complaintplatform.backend.repository.ComplaintRepository;
 import org.springframework.boot.CommandLineRunner;

@@ -84,7 +84,7 @@
             <div class="row g-4">
                 <div class="col-12">
                     <label class="form-label" for="title">Title / Summary <span class="text-danger">*</span></label>
-                    <input type="text" id="title" class="form-control" placeholder="Summarize your issue" required>
+                    <input type="text" id="title" class="form-control" required>
                 </div>
 
                 <div id="companySelectContainer" class="col-md-12 d-none">
@@ -145,7 +145,7 @@
                         <label class="form-label mb-0" for="description">Detailed Description <span class="text-danger">*</span></label>
                         <div id="charCount" class="char-counter">0 / 400</div>
                     </div>
-                    <textarea id="description" class="form-control" rows="4" maxlength="400" required oninput="updateCharCount(this)"></textarea>
+                    <textarea id="description" class="form-control" rows="4" maxlength="400" placeholder="describe your problem here" required oninput="updateCharCount(this)"></textarea>
                 </div>
 
                 <div id="solutionFields" class="col-12 d-none">
@@ -160,11 +160,11 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label class="form-label" for="witnessName">Witness Name</label>
+                    <label class="form-label" for="witnessName">Witness names(optional)</label>
                     <input type="text" id="witnessName" class="form-control">
                 </div>
                 <div class="col-md-6 d-flex align-items-end">
-                    <div class="form-check pb-2"><input type="checkbox" id="urgencyCheck" class="form-check-input"><label for="urgencyCheck" class="form-check-label small fw-bold">High Urgency</label></div>
+                    <div class="form-check pb-2"><input type="checkbox" id="urgencyCheck" class="form-check-input"><label for="urgencyCheck" class="form-check-label small fw-bold">this case requires urgent attention</label></div>
                 </div>
 
                 <!-- NEW: Integrated Evidence Section -->
@@ -217,6 +217,11 @@
                     3. Your data will be processed according to our privacy policy.<br>
                     4. The resolution time varies based on priority and case complexity.<br>
                     5. You will cooperate with the investigation team if required.
+                </div>
+                <div id="extraPoliciesContainer" class="d-none mb-4">
+                    <h6 class="fw-bold text-dark mb-2">Company Specific Policies:</h6>
+                    <div class="bg-light p-3 rounded-2 small text-muted" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;" id="extraPoliciesText">
+                    </div>
                 </div>
                 <div class="form-check small mb-0">
                     <input class="form-check-input" type="checkbox" id="modalTermsCheck">
@@ -440,9 +445,12 @@
         di.setAttribute('min', threeMonthsAgo.toISOString().split('T')[0]);
     }
 
+    let allCompanies = [];
+
     async function fetchCompanies() {
         const res = await fetch('/api/companies');
         const list = await res.json();
+        allCompanies = list;
         const select = document.getElementById('companySelect');
         list.forEach(c => {
             const opt = document.createElement('option');
@@ -514,8 +522,24 @@
             showToast("Invalid video link: must start with http:// or https://", "error");
             return;
         }
+        
+        const extraPoliciesContainer = document.getElementById('extraPoliciesContainer');
+        const extraPoliciesText = document.getElementById('extraPoliciesText');
+        if (!isEmployee) {
+            const selId = document.getElementById('companySelect').value;
+            const company = allCompanies.find(c => c.id == selId);
+            if (company && company.policies && company.policies.trim() !== '') {
+                extraPoliciesText.innerText = company.policies;
+                extraPoliciesContainer.classList.remove('d-none');
+            } else {
+                extraPoliciesContainer.classList.add('d-none');
+            }
+        } else {
+            if (extraPoliciesContainer) extraPoliciesContainer.classList.add('d-none');
+        }
 
-        const modal = new bootstrap.Modal(document.getElementById('termsModal'));
+        const termsModalEl = document.getElementById('termsModal');
+        const modal = bootstrap.Modal.getInstance(termsModalEl) || new bootstrap.Modal(termsModalEl);
         modal.show();
     }
 

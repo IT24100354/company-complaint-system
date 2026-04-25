@@ -194,6 +194,11 @@
                                 <input type="text" id="profileRegNum" class="cms-input" disabled>
                             </div>
                             <div class="col-12 mt-4">
+                                <h6 class="fw-bold mb-3 border-bottom pb-2">Company Policies / Terms & Conditions</h6>
+                                <label class="cms-label text-muted small mb-2 d-block">These policies will be shown to customers when they file a complaint against your company.</label>
+                                <textarea id="profilePolicies" class="cms-input" rows="5" placeholder="Enter return policies, exchange rules, and other terms here..."></textarea>
+                            </div>
+                            <div class="col-12 mt-4">
                                 <h6 class="fw-bold mb-3 border-bottom pb-2">Security</h6>
                             </div>
                             <div class="col-md-12">
@@ -296,6 +301,9 @@
         document.getElementById('profileNic').value = session.nic || 'Not Provided';
         document.getElementById('profileCompanyName').value = session.companyName || 'Not Provided';
         document.getElementById('profileRegNum').value = session.registrationNumber || 'Not Provided';
+        if(session.companyPolicies) {
+            document.getElementById('profilePolicies').value = session.companyPolicies;
+        }
         
         document.getElementById('displayFullName').innerText = session.fullName;
         document.getElementById('displayCompanyName').innerText = session.companyName;
@@ -524,7 +532,8 @@
             id: session.id,
             fullName: document.getElementById('profileName').value,
             email: document.getElementById('profileEmail').value,
-            password: document.getElementById('profilePassword').value
+            password: document.getElementById('profilePassword').value,
+            companyPolicies: document.getElementById('profilePolicies').value
         };
 
         const res = await fetch('/api/auth/profile/update', {
@@ -537,6 +546,9 @@
             const data = await res.json();
             session.fullName = data.fullName;
             session.email = payload.email;
+            if (data.companyPolicies !== undefined) {
+                session.companyPolicies = data.companyPolicies;
+            }
             sessionStorage.setItem('cms_session', JSON.stringify(session));
             document.getElementById('displayFullName').innerText = session.fullName;
             showToast('Profile updated successfully', 'success');

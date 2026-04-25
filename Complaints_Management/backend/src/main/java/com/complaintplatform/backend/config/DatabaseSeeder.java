@@ -41,7 +41,7 @@ public class DatabaseSeeder {
             // 4. Seed 10 Complaints if repository has very few items (force refresh)
             if (complaintRepo.count() < 5) {
                 System.out.println("SEEDER: Database has few/no complaints. Seeding fresh complaints...");
-                seedComplaints(userRepo, complaintRepo);
+                seedComplaints(userRepo, complaintRepo, encoder);
             }
             
             System.out.println("SEEDER: Database check complete.");
@@ -112,6 +112,25 @@ public class DatabaseSeeder {
             u.setCompanyName("ABC Garments"); u.setEnabled(true);
             userRepo.save(u);
             System.out.println("SEEDER: Created test user 'adeesha' with email adeeshahimal2002@gmail.com");
+        }
+
+        // Add Sahan for Employee testing
+        if (userRepo.findByUsername("emp_sahan").isEmpty()) {
+            User u = new User();
+            u.setUsername("emp_sahan"); u.setFullName("Sahan Perera"); u.setRole(User.Role.EMPLOYEE);
+            u.setPassword(encoder.encode("Employee@123"));
+            u.setCompanyName("ABC Garments"); u.setEnabled(true);
+            userRepo.save(u);
+            System.out.println("SEEDER: Created test user 'emp_sahan'");
+        }
+
+        // Add Kavindi for Customer testing
+        if (userRepo.findByUsername("cust_kavindi").isEmpty()) {
+            User u = new User();
+            u.setUsername("cust_kavindi"); u.setFullName("Kavindi"); u.setRole(User.Role.CUSTOMER);
+            u.setPassword(encoder.encode("Customer@123")); u.setEnabled(true);
+            userRepo.save(u);
+            System.out.println("SEEDER: Created test user 'cust_kavindi'");
         }
 
         if (le != null && userRepo.findByUsername("le_admin").isEmpty()) {
@@ -199,23 +218,24 @@ public class DatabaseSeeder {
         });
     }
 
-    private void seedComplaints(UserRepository userRepo, ComplaintRepository complaintRepo) {
-        User emp = userRepo.findByUsername("sahan").orElse(null); // Assuming Sahan was created elsewhere or exists
-        // If sahan doesn't exist, try to find any employee
-        if (emp == null) emp = userRepo.findByRole(User.Role.EMPLOYEE).stream().findFirst().orElse(null);
+    private void seedComplaints(UserRepository userRepo, ComplaintRepository complaintRepo, PasswordEncoder encoder) {
+        User emp = userRepo.findByUsername("emp_sahan").orElse(null);
         
-        // If still null, create a temp one 
         if (emp == null) {
             emp = new User();
             emp.setUsername("emp_sahan"); emp.setFullName("Sahan Perera"); emp.setRole(User.Role.EMPLOYEE);
             emp.setCompanyName("ABC Garments"); emp.setCompanyId(1L);
+            emp.setPassword(encoder.encode("Employee@123"));
+            emp.setEnabled(true);
             emp = userRepo.save(emp);
         }
 
-        User cust = userRepo.findByUsername("kavindi").orElse(null);
+        User cust = userRepo.findByUsername("cust_kavindi").orElse(null);
         if (cust == null) {
             cust = new User();
             cust.setUsername("cust_kavindi"); cust.setFullName("Kavindi"); cust.setRole(User.Role.CUSTOMER);
+            cust.setPassword(encoder.encode("Customer@123"));
+            cust.setEnabled(true);
             cust = userRepo.save(cust);
         }
 
